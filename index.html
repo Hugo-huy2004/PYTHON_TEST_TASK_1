@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Exam System</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --primary: #ec003f; --radius: 0.375rem; --bg-dark: #020618; --text-dark: #f8fafc; }
+        body { background-color: var(--bg-dark); color: var(--text-dark); font-family: 'Inter', sans-serif; user-select: none; -webkit-user-select: none; }
+        
+        /* Chặn mobile */
+        @media (max-width: 1024px) {
+            #mobile-blocker { display: flex !important; }
+            #main-content { display: none; }
+        }
+
+        .proplay-input { background: #1e293b; border: 1px solid #334155; border-radius: var(--radius); color: white; padding: 0.5rem; outline: none; }
+        .editor-box { 
+            background: #0f172a; 
+            color: #e2e8f0; 
+            font-family: 'Fira Code', monospace; 
+            border: 1px solid #334155;
+            border-radius: var(--radius); 
+            resize: vertical; 
+            tab-size: 4;
+            width: 100%;
+            padding: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .editor-box:focus { border-color: var(--primary); }
+        .question-card { background: rgba(30, 41, 59, 0.3); border-radius: var(--radius); padding: 1.5rem; border: 1px solid #1e293b; }
+        .timer-box { background: rgba(236, 0, 63, 0.1); border: 1px solid var(--primary); color: var(--primary); border-radius: var(--radius); }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div id="mobile-blocker" class="hidden fixed inset-0 bg-[#020618] z-[9999] flex-col items-center justify-center text-center p-6">
+        <h1 class="text-[#ec003f] text-4xl font-black mb-4">🚫 KHÔNG HỖ TRỢ ĐIỆN THOẠI</h1>
+        <p class="text-slate-400">Vui lòng sử dụng Máy tính để thực hiện bài thi này.</p>
+    </div>
+
+    <div id="main-content" class="max-w-6xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-4xl font-black text-[#ec003f] tracking-tighter">PYHTON TEST - HUGO WWISHPAX PROGRAM</h1>
+                <div class="flex gap-4 mt-2">
+                    <input type="text" id="student_name" class="proplay-input w-64" placeholder="Họ và Tên Học Sinh">
+                    <input type="date" id="dob" class="proplay-input">
+                </div>
+            </div>
+            <div class="text-right">
+                <div id="timer" class="timer-box px-8 py-2 text-4xl font-mono font-bold mb-2">90:00</div>
+                <p class="text-slate-500 text-xs uppercase font-bold tracking-widest">Thời gian còn lại</p>
+            </div>
+        </header>
+
+        <div class="space-y-8 mb-10">
+            <div class="question-card">
+                <h3 class="text-lg font-bold mb-2 text-[#ec003f]">Câu 1 (5đ): Kể tên 3 kiểu dữ liệu bạn biết?</h3>
+                <textarea id="q1" class="editor-box h-24" placeholder="Trả lời tại đây..."></textarea>
+            </div>
+
+            <div class="question-card">
+                <h3 class="text-lg font-bold mb-2 text-[#ec003f]">Câu 2 (15đ): Viết chương trình về hàm IF (có input, < 20 dòng)</h3>
+                <textarea id="q2" class="editor-box h-48 python-editor" placeholder="# Viết code Python..."></textarea>
+                <button onclick="runCode('q2')" class="mt-2 text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded">▶ Chạy thử câu 2</button>
+            </div>
+
+            <div class="question-card">
+                <h3 class="text-lg font-bold mb-2 text-[#ec003f]">Câu 3 (20đ): Viết chương trình về WHILE hoặc FOR (có input, < 25 dòng)</h3>
+                <textarea id="q3" class="editor-box h-48 python-editor" placeholder="# Viết code Python..."></textarea>
+                <button onclick="runCode('q3')" class="mt-2 text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded">▶ Chạy thử câu 3</button>
+            </div>
+
+            <div class="question-card">
+                <h3 class="text-lg font-bold mb-2 text-[#ec003f]">Câu 4 (10đ): Nêu những gì đã học được và cách bạn thực hành?</h3>
+                <textarea id="q4" class="editor-box h-32" placeholder="Trả lời tại đây..."></textarea>
+            </div>
+
+            <div class="question-card border-2 border-[#ec003f]/30">
+                <h3 class="text-xl font-black mb-2 text-[#ec003f]">Câu 5 (50đ): Sáng tạo tổng hợp (Input, Output, If/Else, Vòng lặp)</h3>
+                <textarea id="q5" class="editor-box h-64 python-editor" placeholder="# Viết chương trình sáng tạo của bạn tại đây..."></textarea>
+                <button onclick="runCode('q5')" class="mt-2 text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded">▶ Chạy thử câu 5</button>
+            </div>
+        </div>
+
+        <div class="sticky bottom-6 bg-[#020618]/90 backdrop-blur p-4 border border-slate-800 rounded-lg flex justify-between items-center shadow-2xl">
+            <div class="flex-grow mr-4">
+                <div id="output-header" class="text-[10px] text-slate-500 font-bold uppercase mb-1">Console Output:</div>
+                <pre id="output" class="text-green-400 font-mono text-sm overflow-x-auto">Nhấn "Chạy thử" ở từng câu để kiểm tra kết quả.</pre>
+            </div>
+            <button onclick="submitExam()" id="submit-btn" class="bg-[#ec003f] text-white px-12 py-4 rounded-[0.375rem] font-black text-xl hover:scale-105 transition-all shadow-lg">NỘP BÀI TẤT CẢ</button>
+        </div>
+    </div>
+
+    <script>
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbya2_5UvQzHUuTsef9lEdMaeSml3GKsVcVoMEcvSb1XFZxl8-ckEDJczLqmicScFHykdA/exec";
+        let isSubmitted = false;
+        let pyodideInstance = null;
+        let timeLeft = 90 * 60;
+        const startTimeStr = new Date().toLocaleTimeString('vi-VN');
+
+        // Khởi tạo tính năng cho các Editor
+        document.querySelectorAll('textarea').forEach(el => {
+            el.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const s = this.selectionStart;
+                    this.value = this.value.substring(0, s) + "    " + this.value.substring(this.selectionEnd);
+                    this.selectionEnd = s + 4;
+                }
+                if (e.key === 'Enter' && this.classList.contains('python-editor')) {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const lastLine = this.value.substring(this.value.lastIndexOf('\n', start - 1) + 1, start);
+                    let indent = (lastLine.match(/^\s*/) || [""])[0];
+                    if (lastLine.trim().endsWith(':')) indent += "    ";
+                    this.value = this.value.substring(0, start) + "\n" + indent + this.value.substring(this.selectionEnd);
+                    this.selectionStart = this.selectionEnd = start + 1 + indent.length;
+                }
+            });
+            el.addEventListener('paste', e => e.preventDefault());
+        });
+
+        // Chạy Python cho từng ô
+        async function runCode(id) {
+            const code = document.getElementById(id).value;
+            const outEl = document.getElementById('output');
+            outEl.innerText = ">>> Đang chạy câu " + id.replace('q','') + "...";
+            try {
+                if (!pyodideInstance) pyodideInstance = await loadPyodide();
+                pyodideInstance.setStdin({ stdin: () => prompt("NHẬP DỮ LIỆU (INPUT):") });
+                await pyodideInstance.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
+                await pyodideInstance.runPythonAsync(code);
+                outEl.innerText = pyodideInstance.runPython("sys.stdout.getvalue()") || "Chạy thành công (không có kết quả in ra).";
+            } catch (err) { outEl.innerText = "Lỗi:\n" + err; }
+        }
+
+        // Đếm ngược
+        const timer = setInterval(() => {
+            if (isSubmitted) return;
+            const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+            document.getElementById('timer').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            if (timeLeft-- <= 0) { clearInterval(timer); autoSubmit(); }
+        }, 1000);
+
+        // Chống gian lận
+        window.onblur = () => { if (!isSubmitted) autoSubmit("Tự động nộp do rời khỏi trang!"); };
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        async function submitExam() {
+            const name = document.getElementById('student_name').value.trim();
+            if (!name || !document.getElementById('dob').value) return alert("Vui lòng nhập đủ Họ tên và Ngày sinh!");
+            if (confirm("Bạn có chắc chắn muốn nộp toàn bộ 5 câu?")) sendData();
+        }
+
+        function autoSubmit(msg = "Hết giờ! Hệ thống tự động nộp bài.") {
+            if (isSubmitted) return;
+            alert(msg);
+            sendData();
+        }
+
+        async function sendData() {
+            if (isSubmitted) return;
+            isSubmitted = true;
+            document.getElementById('submit-btn').innerText = "ĐANG GỬI...";
+
+            // Hợp nhất dữ liệu các câu
+            const fullCode = `
+=== CÂU 1 ===\n${document.getElementById('q1').value}\n
+=== CÂU 2 ===\n${document.getElementById('q2').value}\n
+=== CÂU 3 ===\n${document.getElementById('q3').value}\n
+=== CÂU 4 ===\n${document.getElementById('q4').value}\n
+=== CÂU 5 ===\n${document.getElementById('q5').value}`;
+
+            const params = new URLSearchParams({
+                student_name: document.getElementById('student_name').value,
+                dob: document.getElementById('dob').value,
+                start_time: startTimeStr,
+                code: fullCode
+            });
+
+            try {
+                await fetch(webAppUrl, { method: 'POST', body: params, mode: 'no-cors' });
+                alert("NỘP BÀI THÀNH CÔNG!");
+                window.location.reload();
+            } catch (e) { alert("Lỗi mạng khi nộp!"); isSubmitted = false; }
+        }
+    </script>
+</body>
+</html>
